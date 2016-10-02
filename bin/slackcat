@@ -88,6 +88,13 @@ class Slackcat
     end
   end
 
+  ## sets do not disturb mode for a number of minutes
+  def snooze(params)
+    self.class.post('/dnd.setSnooze', body: params.merge({token: @token})).tap do |response|
+      raise "error posting message: #{response.fetch('error', 'unknown error')}" unless response['ok']
+    end
+  end
+
 end
 
 opts = Trollop::options do
@@ -103,6 +110,7 @@ opts = Trollop::options do
   opt :multipart,       'Multipart upload each file', type: :boolean, short: 'm', default: false
   opt :download,        'Download a linked file',     type: :string,  short: 'd'
   opt :save_as,         'Save downloaded file as',    type: :string,  short: 's'
+  opt :snooze,          '# of minutes to snooze',     type: :integer, short: 'z'
 end
 
 raise 'set slack API token using SLACK_TOKEN or -k option' unless opts[:token]
@@ -131,7 +139,8 @@ params = {
   filename:        opts[:filename],
   title:           opts[:title],
   initial_comment: opts[:initial_comment],
-  channels:        (channels + groups + ims).join(',')
+  channels:        (channels + groups + ims).join(','),
+  snooze:          opts[:snooze]
 }.select { |_, value| value }
 
 if opts[:post] #simple text post
@@ -150,6 +159,8 @@ elsif opts[:download] #download a linked file
   file = uri.path.split('/')[3] # 0 is always empty, 1 is always 'files', 2 is always username
   dst  = slack.download({file: file}, opts[:save_as])
   puts "File downloaded to #{dst}"
+elsif opts[:snooze] # set do not disturb for # minutes passed
+  slack.snooze(num_minutes: params[:snooze], as_user: true)
 else #upload concatenated text snippet
   slack.upload(params.merge(content: ARGF.read))
 end

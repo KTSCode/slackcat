@@ -39,6 +39,7 @@ derivatives, you need to install the `ruby-dev` package.
             --multipart, -m:   Multipart upload each file
          --download, -d <s>:   Download a linked file
           --save-as, -s <s>:   Save downloaded file as
+           --snooze, -z <i>:   Number of minutes to snooze
                  --help, -h:   Show this message
 ```
 
@@ -89,6 +90,16 @@ slackcat -u buddy -p foo.txt bar.txt
 Due to a limitation of the slack api you may also pass only one channel,
 group or username.
 
+## Set Do Not Disturb
+
+To snooze slack for a number of minutes use the `-z` option.
+
+Example:
+
+```sh
+slackcat -z 25
+```
+
 ## Example usage from vim
 
 Upload contents of buffer:
@@ -115,3 +126,4 @@ To make a named function:
   (let ((args (read-from-minibuffer "slackcat args: " slackcat-args)))
     (shell-command-on-region b e (format "%s %s" slackcat-bin args))))
 ```
+
